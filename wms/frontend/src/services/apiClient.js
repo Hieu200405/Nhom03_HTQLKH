@@ -1,4 +1,4 @@
-const DEFAULT_BASE_URL = 'http://localhost:4000';
+const DEFAULT_BASE_URL = 'http://localhost:4000/api/v1/';
 
 let mockHandler = null;
 
@@ -15,14 +15,17 @@ export async function apiClient(path, options = {}) {
     skipMock = false,
   } = options;
 
-  const baseUrl = import.meta.env.VITE_API_URL ?? DEFAULT_BASE_URL;
+  const envBase =
+    import.meta.env.VITE_API_BASE_URL ?? import.meta.env.VITE_API_URL ?? DEFAULT_BASE_URL;
+  const baseUrl = envBase.endsWith('/') ? envBase : `${envBase}/`;
+  const normalizedPath = path.startsWith('/') ? path.slice(1) : path;
   const useMock = import.meta.env.VITE_USE_MOCK ?? 'true';
 
   if (useMock !== 'false' && !skipMock && typeof mockHandler === 'function') {
     return mockHandler(path, { method, body });
   }
 
-  const url = new URL(path, baseUrl);
+  const url = new URL(normalizedPath, baseUrl);
   if (params && typeof params === 'object') {
     Object.entries(params).forEach(([key, value]) => {
       if (value != null) {
