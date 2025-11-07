@@ -39,8 +39,11 @@ const reportMap = {
   overview: getOverviewReport,
   inventory: getInventoryReport,
   inbound: getInboundReport,
+  receipts: getInboundReport,
   outbound: getOutboundReport,
-  stocktake: getStocktakeReport
+  deliveries: getOutboundReport,
+  stocktake: getStocktakeReport,
+  stocktaking: getStocktakeReport
 } as const;
 
 type ReportKey = keyof typeof reportMap;

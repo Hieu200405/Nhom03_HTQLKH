@@ -81,12 +81,14 @@ export const createDisposal = async (
     boardRequired,
     boardMembers: payload.boardMembers ?? [],
     minutesFileUrl: payload.minutesFileUrl,
-    items: payload.items.map((item) => ({
-      productId: new Types.ObjectId(item.productId),
-      locationId: new Types.ObjectId(item.locationId),
-      qty: item.qty,
-      value: item.value ?? null
-    }))
+    items: payload.items.map((item) => {
+      const entry = {
+        productId: new Types.ObjectId(item.productId),
+        locationId: new Types.ObjectId(item.locationId),
+        qty: item.qty
+      };
+      return item.value != null ? { ...entry, value: item.value } : entry;
+    })
   });
   await recordAudit({
     action: 'disposal.created',
@@ -119,12 +121,14 @@ export const updateDisposal = async (
   if (payload.boardMembers) disposal.boardMembers = payload.boardMembers;
   if (typeof payload.minutesFileUrl === 'string') disposal.minutesFileUrl = payload.minutesFileUrl;
   if (payload.items) {
-    disposal.items = payload.items.map((item) => ({
-      productId: new Types.ObjectId(item.productId),
-      locationId: new Types.ObjectId(item.locationId),
-      qty: item.qty,
-      value: item.value ?? null
-    }));
+    disposal.items = payload.items.map((item) => {
+      const entry = {
+        productId: new Types.ObjectId(item.productId),
+        locationId: new Types.ObjectId(item.locationId),
+        qty: item.qty
+      };
+      return item.value != null ? { ...entry, value: item.value } : entry;
+    });
     disposal.totalValue = payload.totalValue ?? computeTotalValue(payload.items);
     disposal.boardRequired =
       typeof payload.boardRequired === 'boolean'

@@ -16,7 +16,11 @@
     "test": "npm run test --workspaces",
     "build": "npm run build --workspaces",
     "prepare": "husky install",
-    "seed": "npm run seed --workspace server"
+    "seed": "npm run seed --workspace server",
+    "setup": "node ./scripts/setup-env.mjs",
+    "docker:up": "docker compose up --build",
+    "docker:down": "docker compose down",
+    "docker:logs": "docker compose logs -f"
   },
   "devDependencies": {
     "concurrently": "^8.2.2",

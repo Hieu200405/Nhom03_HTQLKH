@@ -1,4 +1,8 @@
+import type { PipelineStage } from 'mongoose';
 import PDFDocument from 'pdfkit';
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
 import { InventoryModel } from '../models/inventory.model.js';
 import { ProductModel } from '../models/product.model.js';
 import { ReceiptModel } from '../models/receipt.model.js';
@@ -63,7 +67,7 @@ export const getInventoryReport = async () => {
   return rows.map(toObject);
 };
 
-const groupByDate = (field: string) => [
+const groupByDate = (field: string): PipelineStage[] => [
   {
     $addFields: {
       totalQty: { $sum: '$lines.qty' }
@@ -78,7 +82,7 @@ const groupByDate = (field: string) => [
       documents: { $sum: 1 }
     }
   },
-  { $sort: { _id: 1 } }
+  { $sort: { _id: 1 as const } }
 ];
 
 export const getInboundReport = async () => {
@@ -117,10 +121,17 @@ export const getStocktakeReport = async () => {
         }
       }
     },
-    { $sort: { date: -1 } }
+    { $sort: { date: -1 as const } }
   ]);
   return rows.map(toObject);
 };
+
+const currentDirname = typeof __dirname !== 'undefined'
+  ? __dirname
+  : path.dirname(fileURLToPath(import.meta.url));
+
+const fontRegularPath = path.resolve(currentDirname, '../assets/fonts/NotoSans-Regular.ttf');
+const fontBoldPath = path.resolve(currentDirname, '../assets/fonts/NotoSans-Bold.ttf');
 
 export const createPdfBuffer = async (title: string, data: any) => {
   const doc = new PDFDocument({ margin: 40 });
@@ -130,16 +141,34 @@ export const createPdfBuffer = async (title: string, data: any) => {
     doc.on('end', () => resolve(Buffer.concat(chunks)));
     doc.on('error', reject);
 
-    doc.fontSize(18).text(title, { underline: true });
+    // Prefer Vietnamese-capable font if available
+    try {
+      if (fs.existsSync(fontRegularPath)) {
+        doc.font(fontBoldPath).fontSize(18).text(title, { underline: true });
+      } else {
+        doc.fontSize(18).text(title, { underline: true });
+      }
+    } catch {
+      doc.fontSize(18).text(title, { underline: true });
+    }
     doc.moveDown();
 
     const entries = Array.isArray(data) ? data : Object.entries(data);
     entries.forEach((entry: any) => {
+      try {
+        if (fs.existsSync(fontRegularPath)) {
+          doc.font(fontRegularPath).fontSize(12);
+        } else {
+          doc.fontSize(12);
+        }
+      } catch {
+        doc.fontSize(12);
+      }
       if (Array.isArray(data)) {
-        doc.fontSize(12).text(JSON.stringify(entry));
+        doc.text(JSON.stringify(entry));
       } else {
         const [key, value] = entry;
-        doc.fontSize(12).text(`${key}: ${JSON.stringify(value)}`);
+        doc.text(`${key}: ${JSON.stringify(value)}`);
       }
       doc.moveDown(0.5);
     });

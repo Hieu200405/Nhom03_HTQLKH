@@ -32,6 +32,7 @@ import { DisposalsPage } from '../features/disposals/DisposalsPage.jsx';
 import { ReportsPage } from '../features/reports/ReportsPage.jsx';
 import { UsersPage } from '../features/users/UsersPage.jsx';
 import { Roles } from '../utils/constants.js';
+import { PdfTestPage } from '../features/pdf/PdfTestPage.jsx';
 
 export const appRoutes = [
   {
@@ -147,6 +148,13 @@ export const appRoutes = [
     icon: FileChartColumn,
     component: ReportsPage,
     roles: [Roles.ADMIN, Roles.MANAGER],
+  },
+  {
+    path: '/pdf-test',
+    labelKey: 'navigation.pdfTest',
+    icon: FileChartColumn,
+    component: PdfTestPage,
+    roles: [Roles.ADMIN, Roles.MANAGER, Roles.STAFF],
   },
   {
     path: '/users',

@@ -204,8 +204,8 @@ export const transitionReturn = async (
       }
     }
     if (expiredItems.length) {
-      const disposal = await createDisposalForExpired(returnDoc, expiredItems, actorId);
-      returnDoc.disposalId = disposal?._id ?? null;
+      const disposal = await createDisposalForExpired(returnDoc, expiredItems, actorId, defaultBin);
+      returnDoc.disposalId = disposal ? (disposal._id as Types.ObjectId) : null;
     }
   }
 
