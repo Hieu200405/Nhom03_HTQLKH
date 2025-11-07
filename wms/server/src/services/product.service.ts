@@ -13,6 +13,18 @@ type ListQuery = {
   categoryId?: string;
 };
 
+type CategoryLean =
+  | Types.ObjectId
+  | {
+      _id: Types.ObjectId;
+      name?: string | null;
+    };
+
+const isPopulatedCategory = (
+  category: CategoryLean | undefined
+): category is Exclude<CategoryLean, Types.ObjectId> =>
+  Boolean(category && !(category instanceof Types.ObjectId));
+
 export const listProducts = async (query: ListQuery) => {
   const { page, limit, sort, skip } = parsePagination(query);
   const filter: Record<string, unknown> = {};
@@ -44,14 +56,19 @@ export const listProducts = async (query: ListQuery) => {
     priceIn: product.priceIn,
     priceOut: product.priceOut,
     minStock: product.minStock,
-    category: product.categoryId
-      ? {
-          id: product.categoryId instanceof Types.ObjectId
-            ? product.categoryId.toString()
-            : product.categoryId._id?.toString(),
-          name: (product as any).categoryId?.name ?? null
-        }
-      : null,
+    category: (() => {
+      const categoryRef = product.categoryId as CategoryLean | undefined;
+      if (!categoryRef) {
+        return null;
+      }
+      if (categoryRef instanceof Types.ObjectId) {
+        return { id: categoryRef.toString(), name: null };
+      }
+      if (isPopulatedCategory(categoryRef)) {
+        return { id: categoryRef._id.toString(), name: categoryRef.name ?? null };
+      }
+      return null;
+    })(),
     createdAt: product.createdAt
   }));
 
@@ -70,7 +87,7 @@ export const createProduct = async (
   },
   actorId: string
 ) => {
-  const category = await CategoryModel.findById(new Types.ObjectId(payload.categoryId)).lean();
+  const category = await CategoryModel.findById(new Types.ObjectId(payload.categoryId)).exec();
   if (!category) {
     throw notFound('Category not found');
   }
@@ -122,11 +139,11 @@ export const updateProduct = async (
   if (typeof payload.priceOut === 'number') product.priceOut = payload.priceOut;
   if (typeof payload.minStock === 'number') product.minStock = payload.minStock;
   if (payload.categoryId) {
-    const category = await CategoryModel.findById(new Types.ObjectId(payload.categoryId)).lean();
+    const category = await CategoryModel.findById(new Types.ObjectId(payload.categoryId)).exec();
     if (!category) {
       throw notFound('Category not found');
     }
-    product.categoryId = category._id;
+    product.categoryId = category._id as Types.ObjectId;
   }
   await product.save();
   await recordAudit({

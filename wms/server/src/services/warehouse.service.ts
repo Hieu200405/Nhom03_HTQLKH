@@ -1,5 +1,5 @@
 import { Types } from 'mongoose';
-import { WarehouseNodeModel } from '../models/warehouseNode.model.js';
+import { WarehouseNodeModel, type WarehouseNodeDocument } from '../models/warehouseNode.model.js';
 import { buildPagedResponse, parsePagination } from '../utils/pagination.js';
 import { badRequest, conflict, notFound } from '../utils/errors.js';
 import { recordAudit } from './audit.service.js';
@@ -9,14 +9,17 @@ const typeRank = new Map<WarehouseNodeType, number>(
   WAREHOUSE_NODE_TYPES.map((type, index) => [type, index])
 );
 
-const validateParentChain = async (type: WarehouseNodeType, parentId?: string | null) => {
+const validateParentChain = async (
+  type: WarehouseNodeType,
+  parentId?: string | null
+): Promise<WarehouseNodeDocument | null> => {
   if (!parentId) {
     if (type !== 'warehouse') {
       throw badRequest('Only warehouses can exist without parent');
     }
     return null;
   }
-  const parent = await WarehouseNodeModel.findById(new Types.ObjectId(parentId)).lean();
+  const parent = await WarehouseNodeModel.findById(new Types.ObjectId(parentId)).exec();
   if (!parent) {
     throw notFound('Parent node not found');
   }
@@ -99,7 +102,7 @@ export const createWarehouseNode = async (
   const parent = await validateParentChain(payload.type, payload.parentId);
   const node = await WarehouseNodeModel.create({
     ...payload,
-    parentId: parent?._id ?? null
+    parentId: parent ? (parent._id as Types.ObjectId) : null
   });
   await recordAudit({
     action: 'warehouse.created',
@@ -122,7 +125,7 @@ export const updateWarehouseNode = async (
   }
   if (payload.parentId !== undefined) {
     const parent = await validateParentChain(node.type as WarehouseNodeType, payload.parentId);
-    node.parentId = parent?._id ?? null;
+    node.parentId = parent ? (parent._id as Types.ObjectId) : null;
   }
   if (payload.name) node.name = payload.name;
   if (typeof payload.barcode !== 'undefined') node.barcode = payload.barcode;

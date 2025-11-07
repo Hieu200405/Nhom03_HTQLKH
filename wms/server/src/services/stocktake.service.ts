@@ -3,7 +3,7 @@ import { StocktakeModel } from '../models/stocktake.model.js';
 import { InventoryModel } from '../models/inventory.model.js';
 import { AdjustmentModel } from '../models/adjustment.model.js';
 import { buildPagedResponse, parsePagination } from '../utils/pagination.js';
-import { badRequest, notFound } from '../utils/errors.js';
+import { badRequest, conflict, notFound } from '../utils/errors.js';
 import { recordAudit } from './audit.service.js';
 import { approveAdjustment } from './adjustment.service.js';
 
@@ -156,7 +156,7 @@ export const approveStocktake = async (id: string, actorId: string) => {
     }))
   });
   stocktake.status = 'approved';
-  stocktake.adjustmentId = adjustment._id;
+  stocktake.adjustmentId = adjustment._id as Types.ObjectId;
   await stocktake.save();
   await recordAudit({
     action: 'stocktake.approved',

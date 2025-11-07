@@ -12,35 +12,36 @@ wms/
  |- README.md
 ```
 
-## Prerequisites
+## Quick Start (Docker)
 
-- Node.js >= 18
-- Local MongoDB instance (default: `mongodb://127.0.0.1:27017`)
+> Clone the repository and run everything with a single command. No local Node/MongoDB setup required—just Docker Desktop.
 
-## Install & Run
+```bash
+git clone <repo-url>
+cd wms
+npm run docker:up
+```
+
+Services become available once the logs show `Server listening`:
+
+- API: http://localhost:4000
+- Swagger UI: http://localhost:4000/api-docs
+- Web app: http://localhost:5173
+
+To stop the stack run `npm run docker:down`. Follow the logs with `npm run docker:logs`.
+
+## Local Development
+
+If you prefer running directly on your machine:
 
 ```bash
 cd wms
 npm install
-npm run dev          # runs server (4000) and frontend (5173) concurrently
+npm run setup     # copies .env.example files if missing
+npm run dev       # starts API (4000) + frontend (5173)
 ```
 
-## Environment Variables
-
-Create `.env` files from the provided examples:
-
-- `server/.env.example`
-- `frontend/.env.example`
-
-Minimum backend configuration:
-
-```
-MONGODB_URI=mongodb://127.0.0.1:27017/wms
-PORT=4000
-JWT_SECRET=supersecret
-JWT_REFRESH_SECRET=superrefresh
-CLIENT_URL=http://localhost:5173
-```
+Default configuration works out of the box (MongoDB expected at `mongodb://127.0.0.1:27017`). Adjust `server/.env` or `frontend/.env` if needed.
 
 ## Seed & Test
 
@@ -51,9 +52,13 @@ CLIENT_URL=http://localhost:5173
 
 ## Docker
 
-```bash
-docker compose up --build
-```
+Use the provided npm scripts instead of memorising Docker commands:
+
+- `npm run docker:up` — build and start all services
+- `npm run docker:down` — stop the stack
+- `npm run docker:logs` — follow container logs
+
+If you prefer the raw command it is still available: `docker compose up --build`.
 
 ## Deploy
 

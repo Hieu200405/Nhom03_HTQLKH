@@ -194,7 +194,7 @@ paths:
           required: true
           schema:
             type: string
-            enum: [overview, inventory, inbound, outbound, stocktake]
+            enum: [overview, inventory, inbound, receipts, outbound, deliveries, stocktake, stocktaking]
       responses:
         '200':
           description: PDF stream
